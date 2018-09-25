@@ -1,2 +1,15 @@
-# data-utils
-Common utilities for data (json,yaml,xml,toml) handling (io,type-inference,merge,patch,diff)
+# Hofstadter - data-utils
+
+Sub packages for common data utilities:
+
+- io
+  - read file / dir
+  - determine filetype
+- manip
+  - merge
+  - diff
+  - patch
+- visit
+  - context
+  - visit
+

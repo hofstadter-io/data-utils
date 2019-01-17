@@ -164,4 +164,5 @@ func merge(original interface{}, update interface{}) (merged interface{}, err er
 	}
 
 	logger.Crit("Shouldn't get here (end of merge function)")
+	return nil, errors.New("PANIC, should not get here")
 }

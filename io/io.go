@@ -3,6 +3,7 @@ package io
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -89,8 +90,12 @@ func ReadAll(reader io.Reader, obj *interface{}) (contentType string, err error)
 Where's your docs doc?!
 */
 func ReadFile(filename string, obj *interface{}) (contentType string, err error) {
-
 	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+
+	data, err = handleImports(data, filename)
 	if err != nil {
 		return "", err
 	}
@@ -169,4 +174,39 @@ func ReadFile(filename string, obj *interface{}) (contentType string, err error)
 	}
 
 	return "", errors.New("unknown content type")
+}
+
+const importTag = "#!import"
+
+func handleImports(orig []byte, filename string) (content []byte, err error) {
+
+	if !bytes.Contains(orig, []byte(importTag)) {
+		return orig, nil
+	}
+
+	dir := filepath.Dir(filename)
+
+	lines := bytes.Split(orig, []byte("\n"))
+	for _, line := range lines {
+		if bytes.HasPrefix(line, []byte(importTag)) {
+			fields := bytes.Fields(line)
+			if len(fields) != 2 {
+				return orig, errors.New(fmt.Sprintf("Bad import statement '%s' in '%s'", string(line), filename))
+			}
+			ifile := string(fields[1])
+			ipath := filepath.Join(dir, ifile)
+
+			data, err := ioutil.ReadFile(ipath)
+			if err != nil {
+				return orig, err
+			}
+
+			content = append(content, data...)
+		} else {
+			content = append(content, line...)
+		}
+		content = append(content, '\n')
+	}
+
+	return content, nil
 }
